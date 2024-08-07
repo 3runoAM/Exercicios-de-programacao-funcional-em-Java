@@ -1,6 +1,5 @@
 package ListaDeExercicio2;
 import ListaDeExercicio2.Book;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,16 +40,7 @@ public class Main {
             new Book("Don Quixote", "Miguel de Cervantes", 1605, "Adventure"));
 
     public static void main(String[] args){
-//        System.out.println(getBooksPublishedSinceThe20thCenturyCount());
-//        System.out.println(getBooksNames());
-//        System.out.println(getBooksByAuthor());
-//        System.out.println(getOldestBook());
-//        System.out.println(getLatestBook());
-//        System.out.println(getMoreThanOneBookAuthor());
-//        System.out.println(getBooksByGenre());
-//        System.out.println(getOldestBookByGenre());
-        System.out.println(getAuthorWithMostPublishedBooks());
-        System.out.println();
+        System.out.println(getPublicationYearAverage());
     }
 
     // Conte quantos livros foram publicados no século XX.
@@ -74,14 +64,13 @@ public class Main {
     }
 
     //Encontre o livro mais antigo da lista.
-    @NotNull
     public static  Optional<Book> getOldestBook(){
         return books.stream()
                 .max(Comparator.comparing(Book::getPublicationYear));
     }
 
     //Encontre o livro mais recente da lista.
-    @NotNull
+
     public static Optional<Book> getLatestBook(){
         return books.stream()
                 .min(Comparator.comparing(Book::getPublicationYear));
@@ -116,5 +105,40 @@ public class Main {
                 .entrySet().stream()
                 .max(Comparator.comparing(Map.Entry<String, Long>::getValue).thenComparing(Comparator.comparing(Map.Entry<String, Long>::getKey).reversed()))
                 .map(Map.Entry::getKey);
+    }
+
+    //Crie uma lista de autores que escreveram pelo menos dois livros publicados no século XX.
+    public static List<String> getAuthorsWithPublishedBooksIn20thCentury(){
+        return books.stream()
+                .filter(book -> book.getPublicationYear() >= 1901 && book.getPublicationYear() <= 2000)
+                .collect(Collectors.groupingBy(Book::getAuthor, Collectors.counting()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue() >= 2)
+                .map(Map.Entry<String, Long>::getKey)
+                .collect(Collectors.toList());
+    }
+
+    //Crie um mapa onde a chave seja o primeiro caractere do título e o valor seja uma lista de livros com esse primeiro caractere.
+    public static Map<Character, List<Book>> getBooksByFirstChar(){
+        return books.stream()
+                .collect(Collectors.groupingBy(book -> book.getTitle().charAt(0), Collectors.toList()));
+    }
+
+    //Crie uma lista de livros que compartilham o mesmo autor e gênero.
+    public static List<Book> getBooksOfSameAuthorAndGenre(){
+        return books.stream()
+                .collect(Collectors.groupingBy(book -> book.getAuthor() + "_" + book.getGenre(), Collectors.toList()))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().size() >= 2)
+                .map(entry -> entry.getValue())
+                .flatMap(List::stream)
+                .collect(Collectors.toList());
+    }
+
+    //Calcule a média dos anos de publicação dos livros
+    public static int getPublicationYearAverage() {
+        return (int) books.stream()
+                .collect(Collectors.averagingInt(Book::getPublicationYear))
+                .doubleValue();
     }
 }
